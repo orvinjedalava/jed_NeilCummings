@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import NavBar from "@/components/nav/NavBar";
 
 export const metadata: Metadata = {
   title: "Next Match",
@@ -10,7 +11,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
       <body>
-        {children}
+        <NavBar />
+        <main className="container mx-auto mt-24">
+          {children}
+        </main>
       </body>
     </html>
   );
