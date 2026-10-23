@@ -1,6 +1,7 @@
 import { buttonVariants } from "@heroui/styles";
 import Link from "next/link";
 import { GiMatchTip } from "react-icons/gi";
+import NavLink from "@/components/nav/NavLink";
 
 const navLinks = [
   { href: '/members', label: 'Matches' },
@@ -21,9 +22,7 @@ export default function NavBar() {
         </Link>
         <nav className="flex gap-3 my-2 uppercase text-lg text-white">
           {navLinks.map(link => (
-            <Link key={link.href} href={link.href}>
-              {link.label}
-            </Link>
+            <NavLink key={link.href} href={link.href} label={link.label}/>
           ))}
         </nav>
         <div className="flex items-center gap-3">
