@@ -1,0 +1,21 @@
+name: Manual deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Placeholder: add the Azure login step here
+      # - uses: azure/login@v2
+
+      # Placeholder: add the provisioning, build, and deploy steps here
+      - name: Placeholder
+        run: echo "Replace with deployment steps"
