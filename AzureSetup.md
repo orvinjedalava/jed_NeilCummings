@@ -1,7 +1,7 @@
 -- Create an Azure identity for GitHub --
 
 Azure CLI command:
-az ad app create --display-name github-deploy
+az ad app create --display-name github-deploy-next-match
 
 Creates an app registration in Microsoft Entra ID (formerly Azure AD) named github-deploy. This is the identity GitHub will act as. The output includes an appId, which you use in the next commands.
 
