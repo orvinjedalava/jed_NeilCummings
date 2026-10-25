@@ -21,8 +21,13 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # Placeholder: Confirm identity can see resource group
-      - run: az group show --name ${{ secrets.MY_RESOURCE_GROUP }}
+      # - run: az group show --name ${{ secrets.MY_RESOURCE_GROUP }}
 
-      # Placeholder: add the provisioning, build, and deploy steps here
-      - name: Placeholder
-        run: echo "Replace with deployment steps"
+      # Build and deploy a Container App from Dockerfile
+      - name: Build and deploy Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }}/20261023/next-match
+          acrName: ${{ secrets.MY_ACRNAME }}
+          containerAppName: ${{ secrets.NEXT_MATCH_CONTAINERAPPNAME }}
+          resourceGroup: ${{ secrets.MY_RESOURCE_GROUP }}

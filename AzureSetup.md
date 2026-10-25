@@ -52,4 +52,26 @@ AZURE_SUBSCRIPTION_ID is your subscription ID
     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+
+-- Provision a Container Registry
+az acr create --resource-group <rgName> --name <acrName> --sku Basic
+
+-- Provision a Container Environment and App
+az extension add --name containerapp --upgrade
+az provider register --namespace Microsoft.App --wait
+
+# Create the environment that hosts the app
+az containerapp env create \
+  --name <envName> \
+  --resource-group <rgName> \
+  --location <location>
+
+# Create the app with a placeholder image; the workflow replaces it on deploy
+az containerapp create \
+  --name next-match-container-app \
+  --resource-group <rgName> \
+  --environment <envName> \
+  --image mcr.microsoft.com/k8se/quickstart:latest \
+  --target-port 3000 \
+  --ingress external
  
