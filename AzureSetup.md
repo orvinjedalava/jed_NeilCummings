@@ -93,12 +93,41 @@ az containerapp create \
   --ingress external
 
 # 3. Give the app permission to pull from your registry
-az containerapp identity assign --name <appName> --resource-group <rgName> --system-assigned
 
-ACR_ID=$(az acr show --name <acrName> --query id -o tsv)
-PRINCIPAL_ID=$(az containerapp show --name <appName> --resource-group <rgName> --query identity.principalId -o tsv)
-az role assignment create --assignee $PRINCIPAL_ID --role AcrPull --scope $ACR_ID
+RG="<your-resource-group>"
+APP="<your-container-app-name>"
+ACR="<your-acr-name>"
 
-az containerapp registry set --name <appName> --resource-group <rgName> \
-  --server <acrName>.azurecr.io --identity system
+# Enable system-assigned managed identity on the Container App
+az containerapp identity assign \
+  --name "$APP" \
+  --resource-group "$RG" \
+  --system-assigned
+
+# Get principal ID of that identity
+PRINCIPAL_ID=$(az containerapp identity show \
+  --name "$APP" \
+  --resource-group "$RG" \
+  --query principalId -o tsv)
+
+# Get ACR resource ID
+ACR_ID=$(az acr show \
+  --name "$ACR" \
+  --query id -o tsv)
+
+# Grant AcrPull to the Container App identity
+az role assignment create \
+  --assignee-object-id "$PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role AcrPull \
+  --scope "$ACR_ID"
+
+# Tell the app to use managed identity for registry pulls
+LOGIN_SERVER=$(az acr show --name "$ACR" --query loginServer -o tsv)
+
+az containerapp registry set \
+  --name "$APP" \
+  --resource-group "$RG" \
+  --server "$LOGIN_SERVER" \
+  --identity system
  
