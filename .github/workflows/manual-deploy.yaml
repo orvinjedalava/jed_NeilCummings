@@ -24,16 +24,55 @@ jobs:
       # - run: az group show --name ${{ secrets.MY_RESOURCE_GROUP }}
 
       # Build and deploy a Container App from Dockerfile
-      - name: Build and deploy Container App
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          location: australiaeast
-          appSourcePath: ${{ github.workspace }}/20261023/next-match
-          acrName: ${{ secrets.MY_ACRNAME }}
-          imageToBuild: ${{ secrets.MY_ACRNAME }}.azurecr.io/next-match:${{ github.run_number }}
-          imageToDeploy: ${{ secrets.MY_ACRNAME }}.azurecr.io/next-match:${{ github.run_number }}
-          containerAppName: ${{ secrets.NEXT_MATCH_CONTAINERAPP_NAME }}
-          containerAppEnvironment: ${{ secrets.NEXT_MATCH_CONTAINERAPP_ENV }}
-          resourceGroup: ${{ secrets.MY_RESOURCE_GROUP }}
-          targetPort: 3000
+      # - name: Build and deploy Container App
+      #   uses: azure/container-apps-deploy-action@v1
+      #   with:
+      #     location: australiaeast
+      #     appSourcePath: ${{ github.workspace }}/20261023/next-match
+      #     acrName: ${{ secrets.MY_ACRNAME }}
+      #     imageToBuild: ${{ secrets.MY_ACRNAME }}.azurecr.io/next-match:${{ github.run_number }}
+      #     imageToDeploy: ${{ secrets.MY_ACRNAME }}.azurecr.io/next-match:${{ github.run_number }}
+      #     containerAppName: ${{ secrets.NEXT_MATCH_CONTAINERAPP_NAME }}
+      #     containerAppEnvironment: ${{ secrets.NEXT_MATCH_CONTAINERAPP_ENV }}
+      #     resourceGroup: ${{ secrets.MY_RESOURCE_GROUP }}
+      #     targetPort: 3000
+      
+      - name: Build and push image
+        shell: bash
+        env:
+          ACR: ${{ secrets.MY_ACRNAME }}
+          IMAGE_TAG: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          LOGIN_SERVER=$(az acr show --name "$ACR" --query loginServer -o tsv)
+          IMAGE="$LOGIN_SERVER/next-match:$IMAGE_TAG"
+
+          az acr login --name "$ACR"
+          docker build \
+            -f 20261023/next-match/Dockerfile \
+            -t "$IMAGE" \
+            20261023/next-match
+          docker push "$IMAGE"
+
+      - name: Deploy image using existing managed identity
+        shell: bash
+        env:
+          RG: ${{ secrets.MY_RESOURCE_GROUP }}
+          APP: ${{ secrets.NEXT_MATCH_CONTAINERAPP_NAME }}
+          ACR: ${{ secrets.MY_ACRNAME }}
+          IMAGE_TAG: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          LOGIN_SERVER=$(az acr show --name "$ACR" --query loginServer -o tsv)
+
+          az containerapp registry set \
+            --name "$APP" \
+            --resource-group "$RG" \
+            --server "$LOGIN_SERVER" \
+            --identity system
+
+          az containerapp update \
+            --name "$APP" \
+            --resource-group "$RG" \
+            --image "$LOGIN_SERVER/next-match:$IMAGE_TAG"
           
