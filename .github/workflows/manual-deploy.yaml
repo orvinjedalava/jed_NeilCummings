@@ -27,7 +27,10 @@ jobs:
       - name: Build and deploy Container App
         uses: azure/container-apps-deploy-action@v1
         with:
+          location: australiaeast
           appSourcePath: ${{ github.workspace }}/20261023/next-match
           acrName: ${{ secrets.MY_ACRNAME }}
-          containerAppName: ${{ secrets.NEXT_MATCH_CONTAINERAPPNAME }}
+          containerAppName: ${{ secrets.NEXT_MATCH_CONTAINERAPP_NAME }}
+          containerAppEnvironment: ${{ secrets.NEXT_MATCH_CONTAINERAPP_ENV }}
+          targetPort: 3000
           resourceGroup: ${{ secrets.MY_RESOURCE_GROUP }}

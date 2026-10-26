@@ -1,4 +1,4 @@
--- Create an Azure identity for GitHub --
+# Create an Azure identity for GitHub
 
 Azure CLI command:
 az ad app create --display-name github-deploy-next-match
@@ -16,7 +16,7 @@ az role assignment create --assignee <appId> --role Contributor --scope /subscri
 Grants the identity the Contributor role, which lets it create and change resources, but only inside the named resource group. The --scope limits the access. You need Owner or User Access Administrator rights on the resource group to run this.
 
 
--- Trust your repo ( federated credential ) --
+# Trust your repo ( federated credential )
 
 Azure CLI command:
 az ad app federated-credential create --id <appId> --parameters '{
@@ -37,14 +37,14 @@ If you later use a GitHub environment such as prod, the subject changes to repo:
 
 
 
--- Add three GitHub secrets ( Settings > Secrets and variables > Actions )
+# Add three GitHub secrets ( Settings > Secrets and variables > Actions )
 
 AZURE_CLIENT_ID is the app ID
 AZURE_TENANT_ID is your tenant ID
 AZURE_SUBSCRIPTION_ID is your subscription ID
 
 
--- Add the login step to manual-deploy.yaml
+# Add the login step to manual-deploy.yaml
 
 - uses: azure/login@v2
   with:
@@ -53,12 +53,13 @@ AZURE_SUBSCRIPTION_ID is your subscription ID
     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 
--- Provision a Container Registry
+# Provision a Container Registry
 az acr create --resource-group <rgName> --name <acrName> --sku Basic
 
--- Provision a Container Environment and App
+# Provision a Container Environment and App
 az extension add --name containerapp --upgrade
 az provider register --namespace Microsoft.App --wait
+az provider register --namespace Microsoft.OperationalInsights --wait
 
 # Create the environment that hosts the app
 az containerapp env create \
@@ -74,4 +75,14 @@ az containerapp create \
   --image mcr.microsoft.com/k8se/quickstart:latest \
   --target-port 3000 \
   --ingress external
+
+# Give the app's managed identity permission to pull from the registry
+az containerapp identity assign --name <appName> --resource-group <rgName> --system-assigned
+
+ACR_ID=$(az acr show --name <acrName> --query id -o tsv)
+PRINCIPAL_ID=$(az containerapp show --name <appName> --resource-group <rgName> --query identity.principalId -o tsv)
+az role assignment create --assignee $PRINCIPAL_ID --role AcrPull --scope $ACR_ID
+
+az containerapp registry set --name <appName> --resource-group <rgName> \
+  --server <acrName>.azurecr.io --identity system
  
