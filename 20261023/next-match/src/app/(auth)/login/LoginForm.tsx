@@ -1,7 +1,19 @@
+'use client';
+
 import { Card, CardHeader, Input, Button } from "@heroui/react";
+import { SyntheticEvent, useState } from "react";
 import { GiPadlock } from "react-icons/gi";
 
 export default function LoginForm() {
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleSubmit = (event: SyntheticEvent) => {
+        event.preventDefault();
+        console.log('Login: ', {email, password});
+    }
+
     return (
         <Card className="w-md shadow-xl">
             <CardHeader className="flex flex-col items-center justify-center">
@@ -15,14 +27,18 @@ export default function LoginForm() {
                 </div>
             </CardHeader>
 
-            <form className="flex flex-col gap-4 px-6 py-4">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 py-4">
                 <Input 
                     type="email"
                     placeholder="Enter your email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
                 />
                 <Input 
                     type="password"
                     placeholder="Enter your password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
                 />
                 <Button type="submit" className="w-full">
                     Sign in
