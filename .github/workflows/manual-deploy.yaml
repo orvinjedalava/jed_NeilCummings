@@ -30,6 +30,8 @@ jobs:
           location: australiaeast
           appSourcePath: ${{ github.workspace }}/20261023/next-match
           acrName: ${{ secrets.MY_ACRNAME }}
+          imageToBuild: ${{ secrets.MY_ACRNAME }}.azurecr.io/next-match:${{ github.run_number }}
+          imageToDeploy: ${{ secrets.MY_ACRNAME }}.azurecr.io/next-match:${{ github.run_number }}
           containerAppName: ${{ secrets.NEXT_MATCH_CONTAINERAPP_NAME }}
           containerAppEnvironment: ${{ secrets.NEXT_MATCH_CONTAINERAPP_ENV }}
           targetPort: 3000

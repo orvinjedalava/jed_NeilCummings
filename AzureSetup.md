@@ -76,7 +76,23 @@ az containerapp create \
   --target-port 3000 \
   --ingress external
 
-# Give the app's managed identity permission to pull from the registry
+# Provision Container App Env and Container App
+# 1. Create the environment in Australia East
+az containerapp env create \
+  --name <envName> \
+  --resource-group <rgName> \
+  --location australiaeast
+
+# 2. Create the app on the placeholder image, listening on port 3000
+az containerapp create \
+  --name <appName> \
+  --resource-group <rgName> \
+  --environment <envName> \
+  --image mcr.microsoft.com/k8se/quickstart:latest \
+  --target-port 3000 \
+  --ingress external
+
+# 3. Give the app permission to pull from your registry
 az containerapp identity assign --name <appName> --resource-group <rgName> --system-assigned
 
 ACR_ID=$(az acr show --name <acrName> --query id -o tsv)
