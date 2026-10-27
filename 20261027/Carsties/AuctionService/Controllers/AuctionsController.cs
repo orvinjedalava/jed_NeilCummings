@@ -35,4 +35,20 @@ public class AuctionsController(AuctionDbContext context) : ControllerBase
 
         return auction;
     }
+
+    [HttpPost]
+    public async Task<ActionResult<AuctionDto>> CreateAuction(CreateAuctionDto createAuctionDto)
+    {
+        var auction = createAuctionDto.Adapt<Auction>();
+        
+        // TODO: add current user as seller
+        auction.Seller = "TODO: seller";
+
+        context.Auctions.Add(auction);
+
+        await context.SaveChangesAsync();
+        
+        // HttpResponse will contain a Location header that tells how the client can get the newly created Auction
+        return CreatedAtAction(nameof(GetAuction), new { id = auction.Id }, auction.Adapt<AuctionDto>());
+    }
 }

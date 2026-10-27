@@ -16,5 +16,8 @@ public class MappingConfig : IRegister
             .Map(dest => dest.Mileage, src => src.Item.Mileage)
             .Map(dest => dest.ImageUrl, src => src.Item.ImageUrl)
             .Map(dest => dest.Description, src => src.Item.Description);
+
+        config.NewConfig<CreateAuctionDto, Auction>()
+            .Map(dest => dest.Item, src => src);
     }
 }
