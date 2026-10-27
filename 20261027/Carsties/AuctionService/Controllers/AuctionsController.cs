@@ -22,4 +22,17 @@ public class AuctionsController(AuctionDbContext context) : ControllerBase
         
         return auctions.Adapt<List<AuctionDto>>();
     }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<AuctionDto>> GetAuction(string id)
+    {
+        var auction = await context.Auctions
+            .ProjectToType<AuctionDto>()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (auction == null)
+            return NotFound();
+
+        return auction;
+    }
 }
