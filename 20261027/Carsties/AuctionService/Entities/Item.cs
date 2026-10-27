@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuctionService.Entities;
 
+[Table("Items")]
 public class Item
 {
     [MaxLength(36)]
