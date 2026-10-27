@@ -28,7 +28,7 @@ namespace AuctionService.Data.Migrations
                         .HasMaxLength(36)
                         .HasColumnType("character varying(36)");
 
-                    b.Property<DateTime>("AuctionEndDate")
+                    b.Property<DateTime>("AuctionEnd")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
