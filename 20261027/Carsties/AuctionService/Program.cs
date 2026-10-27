@@ -1,5 +1,8 @@
 using AuctionService.Data;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
+
+TypeAdapterConfig.GlobalSettings.Scan(typeof(Program).Assembly);
 
 var builder = WebApplication.CreateBuilder(args);
 
