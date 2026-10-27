@@ -51,4 +51,30 @@ public class AuctionsController(AuctionDbContext context) : ControllerBase
         // HttpResponse will contain a Location header that tells how the client can get the newly created Auction
         return CreatedAtAction(nameof(GetAuction), new { id = auction.Id }, auction.Adapt<AuctionDto>());
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateAuction(string id, UpdateAuctionDto updateAuctionDto)
+    {
+        var auction = await context.Auctions
+            .Include(x => x.Item)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (auction == null)
+        {
+            return NotFound();
+        }
+
+        if (auction.CurrentHighBid > 0)
+        {
+            return BadRequest("Cannot update an auction that has bids");
+        }
+        
+        // TODO: Check seller is the same as the current user
+
+        updateAuctionDto.Adapt(auction.Item);
+
+        await context.SaveChangesAsync();
+        
+        return NoContent();
+    }
 }
