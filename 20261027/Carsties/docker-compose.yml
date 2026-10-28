@@ -2,12 +2,39 @@ services:
   postgres:
     image: postgres:18
     environment:
+      # Creates this superuser and password on first startup only
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespw
     ports:
+      # host:container; lets tools on your machine (IDE, pgAdmin) reach the DB
       - "5432:5432"
     volumes:
+      # Named volume so data survives container recreation
       - postgres_data:/var/lib/postgresql
+    healthcheck:
+      # Marks the container healthy only once Postgres accepts connections
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
+  auction-service:
+    build:
+      # Folder containing the Dockerfile; compose builds the image from it
+      context: ./AuctionService
+    ports:
+      # host 7001 -> container 8080 (the port set by ASPNETCORE_HTTP_PORTS)
+      - "7001:8080"
+    environment:
+      # Needed so appsettings.Development.json is loaded (unless excluded by .dockerignore)
+      ASPNETCORE_ENVIRONMENT: Development
+      # Overrides ConnectionStrings:DefaultConnection; "postgres" is the service name, not localhost
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=auctions;Username=postgres;Password=postgrespw"
+    depends_on:
+      postgres:
+        # Wait for the healthcheck to pass, not just for the container to start
+        condition: service_healthy
+
+# Declares the named volume used by postgres
 volumes:
   postgres_data:
