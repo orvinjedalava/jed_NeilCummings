@@ -3,17 +3,17 @@
 Azure CLI command:
 az ad app create --display-name github-deploy-next-match
 
-Creates an app registration in Microsoft Entra ID (formerly Azure AD) named github-deploy. This is the identity GitHub will act as. The output includes an appId, which you use in the next commands.
+# Creates an app registration in Microsoft Entra ID (formerly Azure AD) named github-deploy. This is the identity GitHub will act as. The output includes an appId, which you use in the next commands.
 
 Azure CLI command:
 az ad sp create --id <appId>
 
-Creates a service principal, which is the app's presence in your tenant. Azure role assignments apply to service principals, so this step is needed before you can grant access.
+# Creates a service principal, which is the app's presence in your tenant. Azure role assignments apply to service principals, so this step is needed before you can grant access.
 
 Azure CLI command:
 az role assignment create --assignee <appId> --role Contributor --scope /subscriptions/<subId>/resourceGroups/<rgName>
 
-Grants the identity the Contributor role, which lets it create and change resources, but only inside the named resource group. The --scope limits the access. You need Owner or User Access Administrator rights on the resource group to run this.
+# Grants the identity the Contributor role, which lets it create and change resources, but only inside the named resource group. The --scope limits the access. You need Owner or User Access Administrator rights on the resource group to run this.
 
 
 # Trust your repo ( federated credential )

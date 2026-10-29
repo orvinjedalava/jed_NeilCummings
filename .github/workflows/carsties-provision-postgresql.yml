@@ -1,0 +1,36 @@
+name: Carsties Provision PostgreSQL
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Bicep
+        shell: bash
+        env:
+          RG: ${{ secrets.MY_RESOURCE_GROUP }}
+          PG_SERVER_NAME: ${{ vars.PG_SERVER_NAME }}
+          PG_ADMIN_USER: ${{ vars.PG_ADMIN_USER }}
+          PG_ADMIN_PASSWORD: ${{ secrets.PG_ADMIN_PASSWORD }}
+          MY_IP: ${{ vars.MY_IP }}
+        run: |
+          set -euo pipefail
+          az deployment group create \
+            --resource-group "$RG" \
+            --template-file 20261027/infra/postgres.bicep \
+            --parameters serverName="$PG_SERVER_NAME" \
+                         adminUser="$PG_ADMIN_USER" \
+                         adminPassword="$PG_ADMIN_PASSWORD" \
+                         myIp="$MY_IP"
