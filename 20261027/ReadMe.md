@@ -37,3 +37,6 @@ Your assumption is correct: the database should come first, because the Containe
 9. Later, automate steps 5–7 with a GitHub Actions workflow (build image, push, update Container App).
 
 Correction to the ordering: steps 4 and 5 don't depend on the database, so they can happen in any order relative to step 1. Only step 7 needs the database to exist first.
+
+# How to get my Public IP?
+curl -s https://api.ipify.org
