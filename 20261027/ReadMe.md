@@ -40,3 +40,8 @@ Correction to the ordering: steps 4 and 5 don't depend on the database, so they 
 
 # How to get my Public IP?
 curl -s https://api.ipify.org
+
+# How to create a local-only secrets
+Go to AuctionService folder ->
+    dotnet user-secrets init
+    dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<conn string>"
