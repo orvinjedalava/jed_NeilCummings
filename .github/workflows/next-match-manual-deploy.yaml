@@ -1,4 +1,4 @@
-name: Manual deploy
+name: Next-Match Manual deploy
 
 on:
   workflow_dispatch:
