@@ -1,4 +1,4 @@
-name: Carsties Deploy AuctionService
+name: Carsties - Deploy - AuctionService
 on: workflow_dispatch
 
 permissions:
