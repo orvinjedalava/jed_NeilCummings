@@ -1,5 +1,12 @@
 name: Carsties Provision PostgreSQL
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      admin_user:
+        description: PostgreSQL admin username (letters and numbers only, starting with a letter)
+        required: true
+        default: carstiesadminuser
+        type: string
 
 permissions:
   id-token: write
@@ -22,11 +29,15 @@ jobs:
         env:
           RG: ${{ secrets.MY_RESOURCE_GROUP }}
           PG_SERVER_NAME: ${{ vars.PG_SERVER_NAME }}
-          PG_ADMIN_USER: ${{ vars.PG_ADMIN_USER }}
+          PG_ADMIN_USER: ${{ inputs.admin_user }}
           PG_ADMIN_PASSWORD: ${{ secrets.PG_ADMIN_PASSWORD }}
           MY_IP: ${{ vars.MY_IP }}
         run: |
           set -euo pipefail
+          if [[ ! "$PG_ADMIN_USER" =~ ^[a-zA-Z][a-zA-Z0-9]{0,62}$ ]]; then
+            echo "::error::PostgreSQL admin username must be 1-63 letters and numbers, starting with a letter."
+            exit 1
+          fi
           az deployment group create \
             --resource-group "$RG" \
             --template-file 20261027/infra/postgres.bicep \

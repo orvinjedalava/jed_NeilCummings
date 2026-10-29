@@ -13,6 +13,13 @@ docker compose up --build
 
 2. Provision "Azure Database for PostgreSQL - Flexible Server" in Azure
 
+Run the **Carsties Provision PostgreSQL** workflow with the `admin_user` input
+(default: `carstiesadminuser`). This replaces the `PG_ADMIN_USER` repository
+variable. Use 1-63 letters and numbers, starting with a letter; hyphens such as
+those in `carsties-admin-user` are not accepted by Azure. Use the same username
+in the AuctionService connection string. For an existing server, supply its
+current admin username because Azure does not allow it to be changed.
+
 3. Provision new Container App for AuctionService
 
 4. Create Secret and Env Variable for Container App to connect Auction Service with PostgreSQL
