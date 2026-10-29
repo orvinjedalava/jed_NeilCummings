@@ -1,0 +1,56 @@
+name: Carsties Deploy AuctionService
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push image in ACR
+        shell: bash
+        env:
+          ACR_NAME: ${{ vars.CONTAINER_REGISTRY }}
+        run: |
+          set -euo pipefail
+          az acr build \
+            --registry "$ACR_NAME" \
+            --image "auctionservice:${{ github.sha }}" \
+            20261027/Carsties/AuctionService
+
+      - name: Deploy to Container App
+        shell: bash
+        env:
+          RG: ${{ secrets.MY_RESOURCE_GROUP }}
+          ACR_NAME: ${{ vars.CONTAINER_REGISTRY }}
+          APP_NAME: ${{ vars.CONTAINERAPP_AUCTIONSERVICE }}
+          PG_SERVER_NAME: ${{ vars.PG_SERVER_NAME }}
+          PG_ADMIN_USER: ${{ secrets.PG_ADMIN_USER }}
+          PG_ADMIN_PASSWORD: ${{ secrets.PG_ADMIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$PG_ADMIN_PASSWORD"
+
+          # Azure PostgreSQL rejects non-TLS connections, so SSL Mode=Require is mandatory
+          CONN="Host=${PG_SERVER_NAME}.postgres.database.azure.com;Port=5432;Database=auctions;Username=${PG_ADMIN_USER};Password=${PG_ADMIN_PASSWORD};SSL Mode=Require"
+
+          # Store the connection string as a Container App secret, not a plain env var
+          az containerapp secret set \
+            --name "$APP_NAME" --resource-group "$RG" \
+            --secrets db-connection="$CONN"
+
+          # Creates a new revision with the new image; env var reads the secret
+          az containerapp update \
+            --name "$APP_NAME" --resource-group "$RG" \
+            --image "${ACR_NAME}.azurecr.io/auctionservice:${{ github.sha }}" \
+            --set-env-vars ConnectionStrings__DefaultConnection=secretref:db-connection

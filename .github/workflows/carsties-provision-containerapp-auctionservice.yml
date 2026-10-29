@@ -21,7 +21,7 @@ jobs:
         shell: bash
         env:
           RG: ${{ secrets.MY_RESOURCE_GROUP }}
-          ACR_NAME: ${{ secrets.MY_ACRNAME }}
+          ACR_NAME: ${{ vars.CONTAINER_REGISTRY }}
           APP_ENV: ${{ vars.CONTAINERAPP_ENV }}
           APP_NAME: ${{ vars.CONTAINERAPP_AUCTIONSERVICE }}
         run: |
