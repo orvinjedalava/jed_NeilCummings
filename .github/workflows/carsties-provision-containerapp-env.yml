@@ -1,4 +1,4 @@
-name: Carsties Provision Container App Environment
+name: Carsties - Provision - Container App - Environment
 on: workflow_dispatch
 
 permissions:

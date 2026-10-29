@@ -1,0 +1,34 @@
+name: Carsties - Provision - Container App - Auction Service
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Bicep
+        shell: bash
+        env:
+          RG: ${{ secrets.MY_RESOURCE_GROUP }}
+          ACR_NAME: ${{ secrets.MY_ACRNAME }}
+          APP_ENV: ${{ vars.CONTAINERAPP_ENV }}
+          APP_NAME: ${{ vars.CONTAINERAPP_AUCTIONSERVICE }}
+        run: |
+          set -euo pipefail
+          az deployment group create \
+            --resource-group "$RG" \
+            --template-file 20261027/infra/containerapp-auctionservice.bicep \
+            --parameters acrName="$ACR_NAME" \
+                         envName="$APP_ENV" \
+                         appName="$APP_NAME"
