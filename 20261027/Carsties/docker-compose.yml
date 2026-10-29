@@ -21,7 +21,7 @@ services:
   auction-service:
     build:
       # Folder containing the Dockerfile; compose builds the image from it
-      context: ./AuctionService
+      context: ./src/AuctionService
     ports:
       # host 7001 -> container 8080 (the port set by ASPNETCORE_HTTP_PORTS)
       - "7001:8080"
