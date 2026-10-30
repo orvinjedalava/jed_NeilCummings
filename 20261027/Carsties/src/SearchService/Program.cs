@@ -1,5 +1,7 @@
 using Meilisearch;
 using SearchService.Data;
+using SearchService.Endpoints;
+using SearchService.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,8 @@ builder.Services.AddSingleton(sp =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+app.MapGet("/api/search", SearchEndpoints.GetSearchResults);
 
 try
 {
