@@ -1,4 +1,5 @@
 using Meilisearch;
+using SearchService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,5 +19,13 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
+try
+{
+    await DbInitializer.InitDb(app);
+}
+catch (Exception e)
+{
+    Console.WriteLine($"Failed to seed search: {e.Message}");
+}
 
 app.Run();
