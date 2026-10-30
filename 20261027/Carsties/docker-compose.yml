@@ -18,6 +18,18 @@ services:
       timeout: 5s
       retries: 10
 
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    environment:
+      # admin API key value prompted when browsing meilisearch url
+      MEILI_MASTER_KEY: masterkey
+    ports:
+      # host 7700 -> container 7700 (the port set by Meilisearch)
+      - "7700:7700"
+    volumes:
+      # Named volume so data survives container recreation
+      - meilisearch_data:/meili_data
+
   auction-service:
     build:
       # Folder containing the Dockerfile; compose builds the image from it
@@ -38,3 +50,4 @@ services:
 # Declares the named volume used by postgres
 volumes:
   postgres_data:
+  meilisearch_data:
