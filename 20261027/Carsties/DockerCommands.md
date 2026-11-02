@@ -7,5 +7,5 @@ docker compose up -d meilisearch
 
 # Stop and remove containers and volumes
 docker compose down -v
-docker compose down -d postgres
-docker compose down -d meilisearch
+docker compose down -v postgres
+docker compose down -v meilisearch
