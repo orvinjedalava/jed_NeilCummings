@@ -9,7 +9,7 @@ public class DbInitializer
 {
     private const string IndexUid = "items";
 
-    public static async Task InitDb(WebApplication app)
+    public static async Task ConfigureIndex(WebApplication app)
     {
         var client = app.Services.GetRequiredService<MeilisearchClient>();
 
@@ -37,6 +37,15 @@ public class DbInitializer
         // var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         // var items = await JsonSerializer.DeserializeAsync<List<Item>>(stream, options);
 
+        
+    }
+
+    public static async Task FetchMissingAuctions(WebApplication app)
+    {
+        var client = app.Services.GetRequiredService<MeilisearchClient>();
+
+        var index = client.Index(IndexUid);
+        
         using var scope = app.Services.CreateScope();
         var auctionSvc = scope.ServiceProvider.GetRequiredService<AuctionSvcHttpClient>();
 

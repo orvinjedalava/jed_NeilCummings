@@ -30,7 +30,7 @@ public class AuctionsController(AuctionDbContext context) : ControllerBase
         }
         
         
-        var auctions = await context.Auctions
+        var auctions = await query
             .OrderBy(x => x.Item.Make)
             .ThenBy(x => x.Item.Model)
             .ProjectToType<AuctionDto>()
