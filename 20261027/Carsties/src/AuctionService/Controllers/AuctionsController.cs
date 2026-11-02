@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using AuctionService.Data;
 using AuctionService.DTOs;
@@ -12,8 +13,23 @@ namespace AuctionService.Controllers;
 public class AuctionsController(AuctionDbContext context) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<AuctionDto>>> GetAuctions()
+    public async Task<ActionResult<List<AuctionDto>>> GetAuctions(string? date)
     {
+        var query = context.Auctions.AsQueryable();
+
+        if (!string.IsNullOrEmpty(date))
+        {
+            if (!DateTime.TryParse(date, CultureInfo.InvariantCulture, 
+                    DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
+                    out var parsedDate))
+            {
+                return BadRequest("Invalid date");
+            }
+
+            query = query.Where(x => x.UpdatedAt > parsedDate);
+        }
+        
+        
         var auctions = await context.Auctions
             .OrderBy(x => x.Item.Make)
             .ThenBy(x => x.Item.Model)
@@ -71,6 +87,7 @@ public class AuctionsController(AuctionDbContext context) : ControllerBase
         
         // TODO: Check seller is the same as the current user
 
+        auction.UpdatedAt = DateTime.UtcNow;
         updateAuctionDto.Adapt(auction.Item);
 
         await context.SaveChangesAsync();

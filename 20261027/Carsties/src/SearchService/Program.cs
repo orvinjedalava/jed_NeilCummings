@@ -1,7 +1,7 @@
 using Meilisearch;
 using SearchService.Data;
 using SearchService.Endpoints;
-using SearchService.Models;
+using SearchService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +16,7 @@ builder.Services.AddSingleton(sp =>
         config["Meilisearch:ApiKey"]
     );
 });
+builder.Services.AddHttpClient<AuctionSvcHttpClient>();
 
 var app = builder.Build();
 
