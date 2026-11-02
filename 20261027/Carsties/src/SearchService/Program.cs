@@ -35,6 +35,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 
 app.MapGet("/api/search", SearchEndpoints.GetSearchResults);
+app.MapGet("/api/search/{id}", SearchEndpoints.GetAuctionById);
 
 try
 {

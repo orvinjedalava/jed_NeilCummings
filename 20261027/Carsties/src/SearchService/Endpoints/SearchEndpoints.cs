@@ -5,6 +5,22 @@ namespace SearchService.Endpoints;
 
 public static class SearchEndpoints
 {
+    public static async Task<IResult> GetAuctionById(
+        MeilisearchClient client,
+        string id)
+    {
+        try
+        {
+            var result = await client.Index("items").GetDocumentAsync<Item>(id);
+
+            return Results.Ok(result);
+        }
+        catch (MeilisearchApiError e) when (e.Code == "document_not_found")
+        {
+            return Results.NotFound();
+        }
+    }
+    
     public static async Task<IResult> GetSearchResults(
         MeilisearchClient client, 
         string? searchTerm,
