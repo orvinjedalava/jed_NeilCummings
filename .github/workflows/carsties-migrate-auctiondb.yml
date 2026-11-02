@@ -1,0 +1,56 @@
+name: Carsties - Migrate - AuctionService DB
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      RG: ${{ secrets.MY_RESOURCE_GROUP }}
+      PG_SERVER_NAME: ${{ vars.PG_SERVER_NAME }}
+      RULE_NAME: gha-runner-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build migration bundle
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.*
+          dotnet ef migrations bundle \
+            --project 20261027/Carsties/src/AuctionService \
+            --self-contained -r linux-x64 \
+            --output efbundle --force
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Open firewall for runner IP
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          az postgres flexible-server firewall-rule create \
+            --resource-group "$RG" --name "$PG_SERVER_NAME" \
+            --rule-name "$RULE_NAME" \
+            --start-ip-address "$RUNNER_IP" --end-ip-address "$RUNNER_IP"
+
+      - name: Apply migrations
+        env:
+          PG_ADMIN_USER: ${{ secrets.PG_ADMIN_USER }}
+          PG_ADMIN_PASSWORD: ${{ secrets.PG_ADMIN_PASSWORD }}
+        run: |
+          ./efbundle --connection "Host=${PG_SERVER_NAME}.postgres.database.azure.com;Port=5432;Database=auctions;Username=${PG_ADMIN_USER};Password=${PG_ADMIN_PASSWORD};SSL Mode=Require"
+
+      - name: Close firewall
+        if: always()
+        run: |
+          az postgres flexible-server firewall-rule delete \
+            --resource-group "$RG" --name "$PG_SERVER_NAME" \
+            --rule-name "$RULE_NAME" --yes
