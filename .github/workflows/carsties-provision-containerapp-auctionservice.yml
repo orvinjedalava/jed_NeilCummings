@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
           az deployment group create \
             --resource-group "$RG" \
-            --template-file 20261027/infra/containerapp-auctionservice.bicep \
+            --template-file 20261027/infra/containerapp.bicep \
             --parameters acrName="$ACR_NAME" \
                          envName="$APP_ENV" \
                          appName="$APP_NAME"

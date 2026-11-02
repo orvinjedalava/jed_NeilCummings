@@ -1,0 +1,59 @@
+name: Carsties - Deploy - SearchService
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push image in ACR
+        shell: bash
+        env:
+          ACR_NAME: ${{ vars.CONTAINER_REGISTRY }}
+        run: |
+          set -euo pipefail
+          az acr build \
+            --registry "$ACR_NAME" \
+            --image "searchservice:${{ github.sha }}" \
+            20261027/Carsties/src/SearchService
+
+      - name: Deploy to Container App
+        shell: bash
+        env:
+          RG: ${{ secrets.MY_RESOURCE_GROUP }}
+          ACR_NAME: ${{ vars.CONTAINER_REGISTRY }}
+          APP_NAME: ${{ vars.CONTAINERAPP_SEARCHSERVICE }}
+          AUCTION_APP: ${{ vars.CONTAINERAPP_AUCTIONSERVICE }}
+          MEILI_APP: ${{ vars.CONTAINERAPP_MEILISEARCH }}
+          MEILI_MASTER_KEY: ${{ secrets.MEILI_MASTER_KEY }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$MEILI_MASTER_KEY"
+
+          # Look up the FQDNs so we call over HTTPS and avoid ingress HTTP->HTTPS redirect issues
+          AUCTION_FQDN=$(az containerapp show -n "$AUCTION_APP" -g "$RG" \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          MEILI_FQDN=$(az containerapp show -n "$MEILI_APP" -g "$RG" \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+          az containerapp secret set \
+            --name "$APP_NAME" --resource-group "$RG" \
+            --secrets meili-key="$MEILI_MASTER_KEY"
+
+          az containerapp update \
+            --name "$APP_NAME" --resource-group "$RG" \
+            --image "${ACR_NAME}.azurecr.io/searchservice:${{ github.sha }}" \
+            --set-env-vars \
+              Meilisearch__Url="https://${MEILI_FQDN}" \
+              Meilisearch__ApiKey=secretref:meili-key \
+              AuctionSvcUrl="https://${AUCTION_FQDN}"
