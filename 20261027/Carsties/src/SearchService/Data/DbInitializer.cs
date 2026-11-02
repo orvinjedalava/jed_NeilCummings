@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Meilisearch;
 using SearchService.Models;
+using SearchService.Services;
 
 namespace SearchService.Data;
 
@@ -12,27 +13,7 @@ public class DbInitializer
     {
         var client = app.Services.GetRequiredService<MeilisearchClient>();
 
-        if (await IndexHasDocuments(client))
-        {
-            Console.WriteLine("Search index already has documents. Seeding skipped.");
-            return;
-        }
-        
-        var path = Path.Combine(AppContext.BaseDirectory, "Data", "auctions.json");
-        await using var stream = File.OpenRead(path);
-        var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-        var items = await JsonSerializer.DeserializeAsync<List<Item>>(stream, options);
-
-        if (items?.Count == 0)
-        {
-            Console.WriteLine("No items found. Seeding skipped.");
-            return;
-        }
-        
         var index = client.Index(IndexUid);
-
-        var addTask = await index.AddDocumentsAsync(items, primaryKey: "id");
-        await client.WaitForTaskAsync(addTask.TaskUid);
 
         var settingsTask = await index.UpdateSettingsAsync(new Settings()
         {
@@ -42,18 +23,45 @@ public class DbInitializer
         });
 
         await client.WaitForTaskAsync(settingsTask.TaskUid);
+
+        // Previous load implementation
+        //
+        // if (await IndexHasDocuments(client))
+        // {
+        //     Console.WriteLine("Search index already has documents. Seeding skipped.");
+        //     return;
+        // }
         
-        Console.WriteLine($"Search index populated with {items?.Count} items");
+        // var path = Path.Combine(AppContext.BaseDirectory, "Data", "auctions.json");
+        // await using var stream = File.OpenRead(path);
+        // var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        // var items = await JsonSerializer.DeserializeAsync<List<Item>>(stream, options);
+
+        using var scope = app.Services.CreateScope();
+        var auctionSvc = scope.ServiceProvider.GetRequiredService<AuctionSvcHttpClient>();
+
+        var items = await auctionSvc.GetItemsForSearch();
+        
+        if (items.Count == 0)
+        {
+            Console.WriteLine("Search index is up to date with the AuctionService");
+            return;
+        }
+        
+        var addTask = await index.AddDocumentsAsync(items, primaryKey: "id");
+        await client.WaitForTaskAsync(addTask.TaskUid);
+
+        Console.WriteLine($"Search index populated with {items.Count} items");
     }
 
-    private static async Task<bool> IndexHasDocuments(MeilisearchClient client)
-    {
-        var indexes = await client.GetAllIndexesAsync();
-        if (indexes.Results.All(i => i.Uid != IndexUid))
-            return false;
+    // private static async Task<bool> IndexHasDocuments(MeilisearchClient client)
+    // {
+    //     var indexes = await client.GetAllIndexesAsync();
+    //     if (indexes.Results.All(i => i.Uid != IndexUid))
+    //         return false;
 
-        var stats = await client.Index(IndexUid).GetStatsAsync();
+    //     var stats = await client.Index(IndexUid).GetStatsAsync();
 
-        return stats.NumberOfDocuments > 0;
-    }
+    //     return stats.NumberOfDocuments > 0;
+    // }
 }

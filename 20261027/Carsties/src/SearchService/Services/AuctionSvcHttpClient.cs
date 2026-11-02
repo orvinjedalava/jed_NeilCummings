@@ -8,6 +8,12 @@ public class AuctionSvcHttpClient(
     IConfiguration config, 
     MeilisearchClient searchClient)
 {
+    /// <summary>
+    /// Checks for the latest update date in Meilisearch database.
+    /// Use that date to query the AuctionService for any data modified since date
+    /// Loads those data to Meilisearch database.
+    /// </summary>
+    /// <returns></returns>
     public async Task<List<Item>> GetItemsForSearch()
     {
         var search = await searchClient.Index("items")
