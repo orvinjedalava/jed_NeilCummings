@@ -30,6 +30,21 @@ services:
       # Named volume so data survives container recreation
       - meilisearch_data:/meili_data
 
+  rabbitmq:
+    # image comes with user interface to check and manage our queues
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      # host 5672 -> container 5672
+      - "5672:5672"
+      # host 15672 -> container 15672 ( for web interface )
+      - "15672:15672"
+    volumes:
+      # persistent storage for durability of messages
+      - rabbitmq_data:/var/lib/rabbitmq 
+
   auction-service:
     build:
       # Folder containing the Dockerfile; compose builds the image from it
@@ -51,3 +66,4 @@ services:
 volumes:
   postgres_data:
   meilisearch_data:
+  rabbitmq_data:
