@@ -40,9 +40,13 @@ builder.Host.UseWolverine(opts =>
             rabbit.Password = builder.Configuration["RabbitMQ:Password"] ?? "guest";
         })
         .DeclareExchange("auction-created", ex => ex.ExchangeType = ExchangeType.Fanout)
+        .DeclareExchange("auction-updated", ex => ex.ExchangeType = ExchangeType.Fanout)
+        .DeclareExchange("auction-deleted", ex => ex.ExchangeType = ExchangeType.Fanout)
         .AutoProvision(); // Let Wolverine auto-create missing and required infra
 
     opts.PublishMessage<AuctionCreated>().ToRabbitExchange("auction-created");
+    opts.PublishMessage<AuctionUpdated>().ToRabbitExchange("auction-updated");
+    opts.PublishMessage<AuctionDeleted>().ToRabbitExchange("auction-deleted");
 
     opts.ListenToRabbitQueue("wolverine-dead-letter-queue");
 });

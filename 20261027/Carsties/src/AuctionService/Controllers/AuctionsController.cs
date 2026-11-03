@@ -105,9 +105,12 @@ public class AuctionsController(AuctionDbContext context, IDbContextOutbox<Aucti
         // TODO: Check seller is the same as the current user
 
         auction.UpdatedAt = DateTime.UtcNow;
-        updateAuctionDto.Adapt(auction.Item);
+        var updatedAuction = updateAuctionDto.Adapt(auction.Item);
+        
+        await outbox.PublishAsync(updatedAuction.Adapt<AuctionUpdated>());
+        await outbox.SaveChangesAndFlushMessagesAsync();
 
-        await context.SaveChangesAsync();
+        // await context.SaveChangesAsync();
         
         return NoContent();
     }
@@ -131,7 +134,10 @@ public class AuctionsController(AuctionDbContext context, IDbContextOutbox<Aucti
 
         context.Auctions.Remove(auction);
         
-        await context.SaveChangesAsync();
+        await outbox.PublishAsync(auction.Adapt<AuctionDeleted>());
+        await outbox.SaveChangesAndFlushMessagesAsync();
+        
+        // await context.SaveChangesAsync();
         
         return NoContent();
     }

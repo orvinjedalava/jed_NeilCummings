@@ -58,10 +58,21 @@ builder.Host.UseWolverine(opts =>
         .DeclareExchange(
             "auction-created",
             ex => ex.ExchangeType = ExchangeType.Fanout)
+        .DeclareExchange(
+            "auction-updated",
+            ex => ex.ExchangeType = ExchangeType.Fanout)
+        .DeclareExchange(
+            "auction-deleted",
+            ex => ex.ExchangeType = ExchangeType.Fanout)
+        
         // Bind this service's own queue to that exchange, so messages published
         // to "auction-created" are delivered into "search-auction-created"
         .BindExchange(
             "auction-created").ToQueue("search-auction-created")
+        .BindExchange(
+            "auction-updated").ToQueue("search-auction-updated")
+        .BindExchange(
+            "auction-deleted").ToQueue("search-auction-deleted")
         // On startup, create any missing exchanges/queues/bindings in RabbitMQ
         // so you don't have to create them manually (handy in dev; consider carefully in prod)
         .AutoProvision();
@@ -71,6 +82,8 @@ builder.Host.UseWolverine(opts =>
     // ListenToRabbitQueue only says where to read. Wolverine finds handler classes or methods by convention, 
     // for example a Handle(AuctionCreated message) method, in the application assembly.
     opts.ListenToRabbitQueue("search-auction-created");
+    opts.ListenToRabbitQueue("search-auction-updated");
+    opts.ListenToRabbitQueue("search-auction-deleted");
 
     // Configure retries when reading from queues
     opts.OnException<TransientSearchException>()
