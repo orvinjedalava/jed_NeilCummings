@@ -1,9 +1,12 @@
+using Mapster;
 using Meilisearch;
 using SearchService.Data;
 using SearchService.Endpoints;
 using SearchService.Services;
 using Wolverine;
 using Wolverine.RabbitMQ;
+
+TypeAdapterConfig.GlobalSettings.Scan(typeof(Program).Assembly);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,15 +35,40 @@ builder.Services.AddHttpClient<AuctionSvcHttpClient>()
         };
     });
 
+// Plug Wolverine (messaging/mediator framework) into the .NET generic host
 builder.Host.UseWolverine(opts =>
 {
+    // Tell Wolverine to use RabbitMQ as its message transport (speaks AMQP 0-9-1)
     opts.UseRabbitMq(rabbit =>
         {
+            // Connection settings for the broker; fall back to local dev defaults
+            // ("guest/guest" only works against localhost on a default RabbitMQ)
             rabbit.HostName = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
             rabbit.UserName = builder.Configuration["RabbitMQ:Username"] ?? "guest";
             rabbit.Password = builder.Configuration["RabbitMQ:Password"] ?? "guest";
         })
-        .AutoProvision(); // Let Wolverine auto-create missing and required infra
+        // Declare an exchange named "auction-created".
+        // Fanout = copy every message to ALL queues bound to it (routing key ignored).
+        // Other services can bind their own queues to receive the same event.
+        // NOTE: Exchange lives in RabbitMQ broker. .DeclareExchange is indempotent.
+        // If Search Service starts without the exchange yet, this creates it. 
+        // If exchange is already existing, nothing happens.
+        .DeclareExchange(
+            "auction-created",
+            ex => ex.ExchangeType = ExchangeType.Fanout)
+        // Bind this service's own queue to that exchange, so messages published
+        // to "auction-created" are delivered into "search-auction-created"
+        .BindExchange(
+            "auction-created").ToQueue("search-auction-created")
+        // On startup, create any missing exchanges/queues/bindings in RabbitMQ
+        // so you don't have to create them manually (handy in dev; consider carefully in prod)
+        .AutoProvision();
+
+    // Make this service a consumer: Wolverine pulls messages from this queue
+    // and routes each one to the matching handler, based on the message type
+    // ListenToRabbitQueue only says where to read. Wolverine finds handler classes or methods by convention, 
+    // for example a Handle(AuctionCreated message) method, in the application assembly.
+    opts.ListenToRabbitQueue("search-auction-created");
 });
 
 var app = builder.Build();
