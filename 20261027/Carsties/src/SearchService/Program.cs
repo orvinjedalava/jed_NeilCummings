@@ -2,8 +2,10 @@ using Mapster;
 using Meilisearch;
 using SearchService.Data;
 using SearchService.Endpoints;
+using SearchService.Handlers;
 using SearchService.Services;
 using Wolverine;
+using Wolverine.ErrorHandling;
 using Wolverine.RabbitMQ;
 
 TypeAdapterConfig.GlobalSettings.Scan(typeof(Program).Assembly);
@@ -69,6 +71,13 @@ builder.Host.UseWolverine(opts =>
     // ListenToRabbitQueue only says where to read. Wolverine finds handler classes or methods by convention, 
     // for example a Handle(AuctionCreated message) method, in the application assembly.
     opts.ListenToRabbitQueue("search-auction-created");
+
+    // Configure retries when reading from queues
+    opts.OnException<TransientSearchException>()
+        .RetryWithCooldown(
+            TimeSpan.FromMilliseconds(500),
+            TimeSpan.FromMilliseconds(500),
+            TimeSpan.FromSeconds(1)).Then.MoveToErrorQueue();
 });
 
 var app = builder.Build();
