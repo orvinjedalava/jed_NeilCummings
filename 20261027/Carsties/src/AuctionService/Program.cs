@@ -4,6 +4,8 @@ using Contracts;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
+using Wolverine.EntityFrameworkCore;
+using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
 
 TypeAdapterConfig.GlobalSettings.Scan(typeof(Program).Assembly);
@@ -13,14 +15,24 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<AuctionDbContext>(options =>
+
+var connString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connString)) 
+    throw new Exception("Connection string is empty");
+
+builder.Services.AddDbContextWithWolverineIntegration<AuctionDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(connString);
 });
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Host.UseWolverine(opts =>
 {
+    // Setup durable queues by saving messages to Postgres and creating transactions via EFCore
+    opts.PersistMessagesWithPostgresql(connString, "auctions_rmq");
+    opts.UseEntityFrameworkCoreTransactions();
+    opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
+    
     opts.UseRabbitMq(rabbit =>
         {
             rabbit.HostName = builder.Configuration["RabbitMQ:Host"] ?? "localhost";

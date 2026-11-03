@@ -7,12 +7,13 @@ using Contracts;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
+using Wolverine.EntityFrameworkCore;
 
 namespace AuctionService.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuctionsController(AuctionDbContext context, IMessageBus bus) : ControllerBase
+public class AuctionsController(AuctionDbContext context, IDbContextOutbox<AuctionDbContext> outbox) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<AuctionDto>>> GetAuctions(string? date)
@@ -62,13 +63,23 @@ public class AuctionsController(AuctionDbContext context, IMessageBus bus) : Con
         // TODO: add current user as seller
         auction.Seller = "TODO: seller";
 
-        context.Auctions.Add(auction);
+        // only tracked by EF Core here, not yet saved to the DB
+        context.Auctions.Add(auction); 
 
-        await context.SaveChangesAsync();
+        // await context.SaveChangesAsync();
         
         var newAuction = auction.Adapt<AuctionDto>();
 
-        await bus.PublishAsync(newAuction.Adapt<AuctionCreated>());
+        // Does NOT send to RabbitMQ yet. Wolverine stages the message as a row in an
+        // "outbox" table, in the same database and same transaction as the auction.
+        await outbox.PublishAsync(newAuction.Adapt<AuctionCreated>());
+
+        // 1. Saves the Auction AND the outbox message in ONE DB transaction (all or nothing).
+        // 2. After the commit succeeds, flushes the outbox: Wolverine sends the message to RabbitMQ
+        //    (the "auction-created" exchange) and marks it as sent.
+        // If the app crashes after the commit but before sending, Wolverine
+        // resends the persisted message on restart.
+        await outbox.SaveChangesAndFlushMessagesAsync();
         
         // HttpResponse will contain a Location header that tells how the client can get the newly created Auction
         return CreatedAtAction(nameof(GetAuction), new { id = auction.Id }, newAuction);
