@@ -3,14 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 using AuctionService.Data;
 using AuctionService.DTOs;
 using AuctionService.Entities;
+using Contracts;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Wolverine;
 
 namespace AuctionService.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuctionsController(AuctionDbContext context) : ControllerBase
+public class AuctionsController(AuctionDbContext context, IMessageBus bus) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<AuctionDto>>> GetAuctions(string? date)
@@ -64,8 +66,12 @@ public class AuctionsController(AuctionDbContext context) : ControllerBase
 
         await context.SaveChangesAsync();
         
+        var newAuction = auction.Adapt<AuctionDto>();
+
+        await bus.PublishAsync(newAuction.Adapt<AuctionCreated>());
+        
         // HttpResponse will contain a Location header that tells how the client can get the newly created Auction
-        return CreatedAtAction(nameof(GetAuction), new { id = auction.Id }, auction.Adapt<AuctionDto>());
+        return CreatedAtAction(nameof(GetAuction), new { id = auction.Id }, newAuction);
     }
 
     [HttpPut("{id}")]
