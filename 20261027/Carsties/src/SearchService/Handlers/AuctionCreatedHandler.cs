@@ -23,6 +23,12 @@ public class AuctionCreatedHandler
         {
             throw new TransientSearchException($"Simulated failure for {message.Id}");
         }
+
+        // Temporary: Used to simulate errors that are meant to go to dead letter queue
+        if (message.Make == "fail-always")
+        {
+            throw new TransientSearchException($"Simulated always failure for {message.Id}");
+        }
         
         var item = message.Adapt<Item>();
         await client.Index("items").AddDocumentsAsync([item]);

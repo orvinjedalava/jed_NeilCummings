@@ -43,6 +43,8 @@ builder.Host.UseWolverine(opts =>
         .AutoProvision(); // Let Wolverine auto-create missing and required infra
 
     opts.PublishMessage<AuctionCreated>().ToRabbitExchange("auction-created");
+
+    opts.ListenToRabbitQueue("wolverine-dead-letter-queue");
 });
 
 var app = builder.Build();
