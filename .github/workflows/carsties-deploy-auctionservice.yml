@@ -37,20 +37,29 @@ jobs:
           PG_SERVER_NAME: ${{ vars.PG_SERVER_NAME }}
           PG_ADMIN_USER: ${{ secrets.PG_ADMIN_USER }}
           PG_ADMIN_PASSWORD: ${{ secrets.PG_ADMIN_PASSWORD }}
+          RABBITMQ_APP: ${{ vars.CONTAINERAPP_RABBITMQ }}
+          RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
         run: |
           set -euo pipefail
           echo "::add-mask::$PG_ADMIN_PASSWORD"
+          echo "::add-mask::$RABBITMQ_PASSWORD"
 
           # Azure PostgreSQL rejects non-TLS connections, so SSL Mode=Require is mandatory
           CONN="Host=${PG_SERVER_NAME}.postgres.database.azure.com;Port=5432;Database=auctions;Username=${PG_ADMIN_USER};Password=${PG_ADMIN_PASSWORD};SSL Mode=Require"
 
-          # Store the connection string as a Container App secret, not a plain env var
+          # Store the connection string and rabbit pass as Container App secrets, not a plain env var
           az containerapp secret set \
             --name "$APP_NAME" --resource-group "$RG" \
-            --secrets db-connection="$CONN"
+            --secrets db-connection="$CONN" \
+                      rabbit-pass="$RABBITMQ_PASSWORD"
 
           # Creates a new revision with the new image; env var reads the secret
           az containerapp update \
             --name "$APP_NAME" --resource-group "$RG" \
             --image "${ACR_NAME}.azurecr.io/auctionservice:${{ github.sha }}" \
-            --set-env-vars ConnectionStrings__DefaultConnection=secretref:db-connection
+            --set-env-vars \
+              ConnectionStrings__DefaultConnection=secretref:db-connection \
+              RabbitMQ__Host="$RABBITMQ_APP" \
+              RabbitMQ__Username="$RABBITMQ_USER" \
+              RabbitMQ__Password=secretref:rabbit-pass

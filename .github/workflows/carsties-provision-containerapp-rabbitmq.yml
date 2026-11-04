@@ -1,0 +1,36 @@
+name: Carsties - Provision - Container App - RabbitMQ
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Bicep
+        shell: bash
+        env:
+          RG: ${{ secrets.MY_RESOURCE_GROUP }}
+          APP_ENV: ${{ vars.CONTAINERAPP_ENV }}
+          APP_NAME: ${{ vars.CONTAINERAPP_RABBITMQ }}
+          RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$RABBITMQ_PASSWORD"
+          az deployment group create \
+            --resource-group "$RG" \
+            --template-file 20261027/infra/containerapp-rabbitmq.bicep \
+            --parameters envName="$APP_ENV" \
+                         appName="$APP_NAME" \
+                         rabbitUser="$RABBITMQ_USER" \
+                         rabbitPassword="$RABBITMQ_PASSWORD"

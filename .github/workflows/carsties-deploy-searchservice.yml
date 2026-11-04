@@ -36,9 +36,13 @@ jobs:
           AUCTION_APP: ${{ vars.CONTAINERAPP_AUCTIONSERVICE }}
           MEILI_APP: ${{ vars.CONTAINERAPP_MEILISEARCH }}
           MEILI_MASTER_KEY: ${{ secrets.MEILI_MASTER_KEY }}
+          RABBITMQ_APP: ${{ vars.CONTAINERAPP_RABBITMQ }}
+          RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
         run: |
           set -euo pipefail
           echo "::add-mask::$MEILI_MASTER_KEY"
+          echo "::add-mask::$RABBITMQ_PASSWORD"
 
           # Look up the FQDNs so we call over HTTPS and avoid ingress HTTP->HTTPS redirect issues
           AUCTION_FQDN=$(az containerapp show -n "$AUCTION_APP" -g "$RG" \
@@ -48,7 +52,8 @@ jobs:
 
           az containerapp secret set \
             --name "$APP_NAME" --resource-group "$RG" \
-            --secrets meili-key="$MEILI_MASTER_KEY"
+            --secrets meili-key="$MEILI_MASTER_KEY" \
+                      rabbit-pass="$RABBITMQ_PASSWORD"
 
           az containerapp update \
             --name "$APP_NAME" --resource-group "$RG" \
@@ -56,4 +61,7 @@ jobs:
             --set-env-vars \
               Meilisearch__Url="https://${MEILI_FQDN}" \
               Meilisearch__ApiKey=secretref:meili-key \
-              AuctionSvcUrl="https://${AUCTION_FQDN}"
+              AuctionSvcUrl="https://${AUCTION_FQDN}" \
+              RabbitMQ__Host="$RABBITMQ_APP" \
+              RabbitMQ__Username="$RABBITMQ_USER" \
+              RabbitMQ__Password=secretref:rabbit-pass
