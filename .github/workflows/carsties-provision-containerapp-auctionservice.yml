@@ -31,4 +31,5 @@ jobs:
             --template-file 20261027/infra/containerapp.bicep \
             --parameters acrName="$ACR_NAME" \
                          envName="$APP_ENV" \
-                         appName="$APP_NAME"
+                         appName="$APP_NAME" \
+                         minReplicas=1
