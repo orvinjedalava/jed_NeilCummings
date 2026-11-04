@@ -25,7 +25,8 @@ jobs:
           az acr build \
             --registry "$ACR_NAME" \
             --image "searchservice:${{ github.sha }}" \
-            20261027/Carsties/src/SearchService
+            --file 20261027/Carsties/src/SearchService/Dockerfile \
+            20261027/Carsties/src
 
       - name: Deploy to Container App
         shell: bash

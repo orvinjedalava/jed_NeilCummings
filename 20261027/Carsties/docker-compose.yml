@@ -43,12 +43,18 @@ services:
       - "15672:15672"
     volumes:
       # persistent storage for durability of messages
-      - rabbitmq_data:/var/lib/rabbitmq 
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10 
 
   auction-service:
     build:
       # Folder containing the Dockerfile; compose builds the image from it
-      context: ./src/AuctionService
+      context: ./src
+      dockerfile: AuctionService/Dockerfile
     ports:
       # host 7001 -> container 8080 (the port set by ASPNETCORE_HTTP_PORTS)
       - "7001:8080"
@@ -57,10 +63,34 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       # Overrides ConnectionStrings:DefaultConnection; "postgres" is the service name, not localhost
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=auctions;Username=postgres;Password=postgrespw"
+      RabbitMQ__Host: "rabbitmq"
     depends_on:
       postgres:
         # Wait for the healthcheck to pass, not just for the container to start
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
+  
+  search-service:
+    build:
+      context: ./src
+      dockerfile: SearchService/Dockerfile
+    ports:
+      # host 7002 -> container 8080
+      - "7002:8080"
+    environment:
+      # "meilisearch", "auction-service" and "rabbitmq" are compose service names, not localhost
+      Meilisearch__Url: "http://meilisearch:7700"
+      Meilisearch__ApiKey: "masterkey"
+      AuctionSvcUrl: "http://auction-service:8080"
+      RabbitMQ__Host: "rabbitmq"
+    depends_on:
+      meilisearch:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      auction-service:
+        condition: service_started
 
 # Declares the named volume used by postgres
 volumes:

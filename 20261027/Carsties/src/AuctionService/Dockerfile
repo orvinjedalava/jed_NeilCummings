@@ -3,13 +3,14 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy only the csproj first so the restore layer is cached until dependencies change
-COPY AuctionService.csproj .
-RUN dotnet restore
+COPY AuctionService/AuctionService.csproj AuctionService/
+COPY Contracts/Contracts.csproj Contracts/
+RUN dotnet restore AuctionService/AuctionService.csproj
 
 # Copy the rest of the source; changes here don't invalidate the restore layer
-COPY . .
-# Compile and output deployable files to /app; --no-restore reuses the earlier restore
-RUN dotnet publish -c Release -o /app --no-restore
+COPY Contracts/ Contracts/
+COPY AuctionService/ AuctionService/
+RUN dotnet publish AuctionService/AuctionService.csproj -c Release -o /app --no-restore
 
 # Stage 2: runtime-only image (much smaller, no SDK)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0

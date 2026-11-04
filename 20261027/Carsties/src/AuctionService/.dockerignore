@@ -1,3 +1,3 @@
-bin/
-obj/
-appsettings.Development.json
+**/bin/
+**/obj/
+**/appsettings.Development.json
