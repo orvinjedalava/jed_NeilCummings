@@ -75,6 +75,9 @@ internal static class HostingExtensions
                 {
                     options.Diagnostics.ChunkSize = 1024 * 1024 * 10; // 10 MB
                 }
+
+                // when config is null, local run keeps default behaviour
+                options.IssuerUri = builder.Configuration["IssuerUri"];
             })
             .AddInMemoryIdentityResources(Config.IdentityResources)
             .AddInMemoryApiScopes(Config.ApiScopes)
