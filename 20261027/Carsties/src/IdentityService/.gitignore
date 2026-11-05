@@ -1,0 +1,12 @@
+# IdentityService (Duende template)
+# SQLite databases created at runtime
+*.db
+*.db-shm
+*.db-wal
+# Duende diagnostics output, e.g. the license usage summary
+diagnostics/
+# Auto-generated signing keys
+tempkey.jwk
+keys/
+# Client-side libraries restored by LibMan (see libman.json)
+wwwroot/lib/
