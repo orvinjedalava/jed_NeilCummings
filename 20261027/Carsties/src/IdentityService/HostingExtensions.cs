@@ -80,6 +80,11 @@ internal static class HostingExtensions
             .AddInMemoryClients(Config.Clients)
             .AddAspNetIdentity<ApplicationUser>()
             .AddLicenseSummary();
+        
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.SameSite = SameSiteMode.Lax;
+        });
 
         _ = builder.Services.AddAuthentication()
             .AddOpenIdConnect("oidc", "Sign-in with demo.duendesoftware.com", options =>
@@ -98,7 +103,7 @@ internal static class HostingExtensions
                     NameClaimType = "name",
                     RoleClaimType = "role"
                 };
-            });
+            }); 
 
         // add `.PersistKeysTo…()` and `.ProtectKeysWith…()` calls
         // see more at https://docs.duendesoftware.com/general/data-protection
