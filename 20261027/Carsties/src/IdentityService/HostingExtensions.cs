@@ -86,24 +86,26 @@ internal static class HostingExtensions
             options.Cookie.SameSite = SameSiteMode.Lax;
         });
 
-        _ = builder.Services.AddAuthentication()
-            .AddOpenIdConnect("oidc", "Sign-in with demo.duendesoftware.com", options =>
-            {
-                options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-                options.SignOutScheme = IdentityServerConstants.SignoutScheme;
-                options.SaveTokens = true;
+        // _ = builder.Services.AddAuthentication()
+        //     .AddOpenIdConnect("oidc", "Sign-in with demo.duendesoftware.com", options =>
+        //     {
+        //         options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+        //         options.SignOutScheme = IdentityServerConstants.SignoutScheme;
+        //         options.SaveTokens = true;
+        //
+        //         options.Authority = "https://demo.duendesoftware.com";
+        //         options.ClientId = "interactive.confidential";
+        //         options.ClientSecret = "secret";
+        //         options.ResponseType = "code";
+        //
+        //         options.TokenValidationParameters = new TokenValidationParameters
+        //         {
+        //             NameClaimType = "name",
+        //             RoleClaimType = "role"
+        //         };
+        //     });
 
-                options.Authority = "https://demo.duendesoftware.com";
-                options.ClientId = "interactive.confidential";
-                options.ClientSecret = "secret";
-                options.ResponseType = "code";
-
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    NameClaimType = "name",
-                    RoleClaimType = "role"
-                };
-            }); 
+        _ = builder.Services.AddAuthentication();
 
         // add `.PersistKeysTo…()` and `.ProtectKeysWith…()` calls
         // see more at https://docs.duendesoftware.com/general/data-protection
