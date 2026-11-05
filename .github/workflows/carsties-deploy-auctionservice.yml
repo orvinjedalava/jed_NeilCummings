@@ -41,6 +41,7 @@ jobs:
           RABBITMQ_APP: ${{ vars.CONTAINERAPP_RABBITMQ }}
           RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }}
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+          IDENTITY_APP: ${{ vars.CONTAINERAPP_IDENTITYSERVICE }}
         run: |
           set -euo pipefail
           echo "::add-mask::$PG_ADMIN_PASSWORD"
@@ -55,6 +56,11 @@ jobs:
             --secrets db-connection="$CONN" \
                       rabbit-pass="$RABBITMQ_PASSWORD"
 
+          # Look up IdentityService's public hostname (no scheme) from its ingress config.
+          # Used to build IdentityServiceUrl so the JWT issuer matches the one IdentityService advertises
+          IDENTITY_FQDN=$(az containerapp show --name "$IDENTITY_APP" --resource-group "$RG" \
+                  --query properties.configuration.ingress.fqdn -o tsv)
+
           # Creates a new revision with the new image; env var reads the secret
           az containerapp update \
             --name "$APP_NAME" --resource-group "$RG" \
@@ -63,4 +69,5 @@ jobs:
               ConnectionStrings__DefaultConnection=secretref:db-connection \
               RabbitMQ__Host="$RABBITMQ_APP" \
               RabbitMQ__Username="$RABBITMQ_USER" \
-              RabbitMQ__Password=secretref:rabbit-pass
+              RabbitMQ__Password=secretref:rabbit-pass \
+              IdentityServiceUrl="https://${IDENTITY_FQDN}"

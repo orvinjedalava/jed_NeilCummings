@@ -22,11 +22,17 @@ resource db 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
   name: 'auctions' // database the AuctionService connection string will target
 }
 
+resource identityDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
+  parent: server
+  name: 'identity' // database the IdentityService string will target
+  dependsOn: [ db ]
+}
+
 // 0.0.0.0 - 0.0.0.0 is the special range that allows Azure services
 resource allowAzure 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2024-08-01' = {
   parent: server
   name: 'AllowAzureServices'
-  dependsOn: [ db ]
+  dependsOn: [ identityDb ]
   properties: { startIpAddress: '0.0.0.0', endIpAddress: '0.0.0.0' } // lets any Azure service connect, including Container Apps
 }
 
