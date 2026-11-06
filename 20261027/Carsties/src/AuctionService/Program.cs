@@ -56,6 +56,10 @@ builder.Host.UseWolverine(opts =>
         .DeclareExchange("auction-created", ex => ex.ExchangeType = ExchangeType.Fanout)
         .DeclareExchange("auction-updated", ex => ex.ExchangeType = ExchangeType.Fanout)
         .DeclareExchange("auction-deleted", ex => ex.ExchangeType = ExchangeType.Fanout)
+        .DeclareExchange("auction-finished", ex => ex.ExchangeType = ExchangeType.Fanout)
+        .DeclareExchange("bid-placed", ex => ex.ExchangeType = ExchangeType.Fanout)
+        .BindExchange("auction-finished").ToQueue("auction-auction-finished")
+        .BindExchange("bid-placed").ToQueue("auction-bid-placed")
         .AutoProvision(); // Let Wolverine auto-create missing and required infra
 
     opts.PublishMessage<AuctionCreated>().ToRabbitExchange("auction-created");
@@ -63,6 +67,8 @@ builder.Host.UseWolverine(opts =>
     opts.PublishMessage<AuctionDeleted>().ToRabbitExchange("auction-deleted");
 
     opts.ListenToRabbitQueue("wolverine-dead-letter-queue");
+    opts.ListenToRabbitQueue("auction-auction-finished");
+    opts.ListenToRabbitQueue("auction-bid-placed");
 });
 
 var app = builder.Build();
