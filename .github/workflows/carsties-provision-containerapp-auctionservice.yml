@@ -1,5 +1,7 @@
 name: Carsties - Provision - Container App - Auction Service
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+  workflow_call:
 
 permissions:
   id-token: write

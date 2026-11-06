@@ -1,0 +1,64 @@
+name: Carsties - Provision and Deploy - All
+on: workflow_dispatch
+
+# Called workflows can't have more permissions than the caller
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  postgres:
+    uses: ./.github/workflows/carsties-provision-postgresql.yml
+    secrets: inherit
+
+  env:
+    uses: ./.github/workflows/carsties-provision-containerapp-env.yml
+    secrets: inherit
+
+  rabbitmq:
+    needs: env
+    uses: ./.github/workflows/carsties-provision-containerapp-rabbitmq.yml
+    secrets: inherit
+
+  meilisearch:
+    needs: env
+    uses: ./.github/workflows/carsties-provision-containerapp-meilisearch.yml
+    secrets: inherit
+
+  identityservice:
+    needs: env
+    uses: ./.github/workflows/carsties-provision-containerapp-identityservice.yml
+    secrets: inherit
+
+  auctionservice:
+    needs: env
+    uses: ./.github/workflows/carsties-provision-containerapp-auctionservice.yml
+    secrets: inherit
+
+  searchservice:
+    needs: env
+    uses: ./.github/workflows/carsties-provision-containerapp-searchservice.yml
+    secrets: inherit
+
+  # Needs the auctions database to exist
+  migrate-auctiondb:
+    needs: postgres
+    uses: ./.github/workflows/carsties-migrate-auctiondb.yml
+    secrets: inherit
+
+  # Provisioning resets each app to the placeholder image, so deploy afterwards
+  deploy-identityservice:
+    needs: [postgres, identityservice]
+    uses: ./.github/workflows/carsties-deploy-identityservice.yml
+    secrets: inherit
+
+  # Reads the IdentityService FQDN and RabbitMQ app, so they must exist first
+  deploy-auctionservice:
+    needs: [migrate-auctiondb, identityservice, rabbitmq, auctionservice]
+    uses: ./.github/workflows/carsties-deploy-auctionservice.yml
+    secrets: inherit
+
+  deploy-searchservice:
+    needs: [meilisearch, rabbitmq, auctionservice, searchservice]
+    uses: ./.github/workflows/carsties-deploy-searchservice.yml
+    secrets: inherit

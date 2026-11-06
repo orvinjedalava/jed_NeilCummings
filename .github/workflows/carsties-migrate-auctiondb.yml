@@ -1,5 +1,7 @@
 name: Carsties - Migrate - AuctionService DB
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+  workflow_call:
 
 permissions:
   id-token: write
