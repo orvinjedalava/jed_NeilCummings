@@ -64,6 +64,12 @@ builder.Host.UseWolverine(opts =>
         .DeclareExchange(
             "auction-deleted",
             ex => ex.ExchangeType = ExchangeType.Fanout)
+        .DeclareExchange(
+            "auction-finished",
+            ex => ex.ExchangeType = ExchangeType.Fanout)
+        .DeclareExchange(
+            "bid-placed",
+            ex => ex.ExchangeType = ExchangeType.Fanout)
         
         // Bind this service's own queue to that exchange, so messages published
         // to "auction-created" are delivered into "search-auction-created"
@@ -73,6 +79,10 @@ builder.Host.UseWolverine(opts =>
             "auction-updated").ToQueue("search-auction-updated")
         .BindExchange(
             "auction-deleted").ToQueue("search-auction-deleted")
+        .BindExchange(
+            "auction-finished").ToQueue("search-auction-finished")
+        .BindExchange(
+            "bid-placed").ToQueue("search-bid-placed")
         // On startup, create any missing exchanges/queues/bindings in RabbitMQ
         // so you don't have to create them manually (handy in dev; consider carefully in prod)
         .AutoProvision();
@@ -84,6 +94,8 @@ builder.Host.UseWolverine(opts =>
     opts.ListenToRabbitQueue("search-auction-created");
     opts.ListenToRabbitQueue("search-auction-updated");
     opts.ListenToRabbitQueue("search-auction-deleted");
+    opts.ListenToRabbitQueue("search-auction-finished");
+    opts.ListenToRabbitQueue("search-bid-placed");
 
     // Configure retries when reading from queues
     opts.OnException<TransientSearchException>()
