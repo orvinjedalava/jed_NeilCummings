@@ -29,6 +29,11 @@ services:
     volumes:
       # Named volume so data survives container recreation
       - meilisearch_data:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://meilisearch:7700/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   rabbitmq:
     # image comes with user interface to check and manage our queues
@@ -45,8 +50,9 @@ services:
       # persistent storage for durability of messages
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
+      # test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 5s
       timeout: 5s
       retries: 10
 
@@ -104,7 +110,7 @@ services:
       RabbitMQ__Host: "rabbitmq"
     depends_on:
       meilisearch:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       auction-service:
