@@ -4,7 +4,7 @@
 *.db-shm
 *.db-wal
 # Duende diagnostics output, e.g. the license usage summary
-diagnostics/
+/diagnostics/
 # Auto-generated signing keys
 tempkey.jwk
 keys/
