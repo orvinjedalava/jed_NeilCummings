@@ -118,24 +118,8 @@ services:
       # host 6001 -> container 8080 (6001 matches launchSettings.json)
       - "6001:8080"
     environment:
+      # Use appsettings.Docker.json
       ASPNETCORE_ENVIRONMENT: Docker
-      IdentityServiceUrl: "http://identity-service:8080"
-      ReverseProxy__Routes__auctionsRead__ClusterId: "auctions"
-      ReverseProxy__Routes__auctionsRead__Match__Path: "/auctions/{**catch-all}"
-      ReverseProxy__Routes__auctionsRead__Match__Methods__0: "GET"
-      ReverseProxy__Routes__auctionsRead__Transforms__0__PathPattern: "api/auctions/{**catch-all}"
-      ReverseProxy__Routes__auctionsWrite__ClusterId: "auctions"
-      ReverseProxy__Routes__auctionsWrite__AuthorizationPolicy: "default"
-      ReverseProxy__Routes__auctionsWrite__Match__Path: "/auctions/{**catch-all}"
-      ReverseProxy__Routes__auctionsWrite__Match__Methods__0: "POST"
-      ReverseProxy__Routes__auctionsWrite__Match__Methods__1: "PUT"
-      ReverseProxy__Routes__auctionsWrite__Match__Methods__2: "DELETE"
-      ReverseProxy__Routes__auctionsWrite__Transforms__0__PathPattern: "api/auctions/{**catch-all}"
-      ReverseProxy__Routes__search__ClusterId: "search"
-      ReverseProxy__Routes__search__Match__Path: "/search/{**catch-all}"
-      ReverseProxy__Routes__search__Transforms__0__PathPattern: "api/search/{**catch-all}"
-      ReverseProxy__Clusters__auctions__Destinations__auctionsApi__Address: "http://auction-service:8080"
-      ReverseProxy__Clusters__search__Destinations__searchApi__Address: "http://search-service:8080"
     depends_on:
       - identity-service
       - auction-service
