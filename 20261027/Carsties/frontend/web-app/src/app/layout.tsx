@@ -1,19 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import NavBar from "@/components/nav/NavBar";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Carsties",
@@ -24,7 +15,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en" className={cn("font-sans", inter.variable)}>
-      <body>{children}</body>
+      <body className='bg-muted'>
+      
+      <NavBar />
+      <main className="container mx-auto mt-8">
+        {children}
+      </main>
+      
+      </body>
     </html>
   );
 }
