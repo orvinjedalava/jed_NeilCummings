@@ -1,3 +1,5 @@
+import AuctionCard from "@/features/listings/AuctionCard";
+
 async function getListings() {
     const res = await fetch(
         'http://localhost:6001/search');
@@ -11,8 +13,10 @@ export default async function Listings() {
     const data = await getListings();
     
     return (
-        <div>
-            {JSON.stringify(data.results, null, 2)}
+        <div className={'grid grid-cols-4 gap-6'}>
+            {data.results.map((auction:any) => (
+                <AuctionCard auction={auction} key={auction.id} />
+            ))}
         </div>
     );
 }
