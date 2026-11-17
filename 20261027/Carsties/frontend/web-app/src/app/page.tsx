@@ -1,7 +1,9 @@
+import Listings from "@/features/listings/Listings";
+
 export default function Home() {
   return (
     <div>
-      Content goes here...
+      <Listings />
     </div>
   );
 }
