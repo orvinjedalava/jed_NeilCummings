@@ -1,4 +1,6 @@
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import Image from "next/image";
 
 type Props = {
     auction: any;
@@ -6,8 +8,25 @@ type Props = {
 
 export default function AuctionCard({ auction }: Props) {
     return (
-        <Card className='p-4'>
-            {auction.make} {auction.model}
-        </Card>
+        <Link href={`/listings/${auction.id}`}>
+            <Card className='relative mx-auto w-full pt-0'>
+                <Image 
+                    src={auction.imageUrl} 
+                    alt='Image of car'
+                    height={400}
+                    width={400}
+                    className='object-cover aspect-16/10 border-b border-muted-foreground/20'
+                    priority
+                    sizes='(max-width:768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+                />
+                <CardContent className='flex justify-between items-center'>
+                    <h3 className='text-muted-foreground'>
+                        {auction.make} {auction.model}
+                    </h3>
+                    <p className='font-semibold text-sm'>{auction.year}</p>
+                </CardContent>
+            </Card>
+        </Link>
+        
     );
 }
