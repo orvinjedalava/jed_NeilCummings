@@ -9,10 +9,10 @@ type Props = {
 }
 
 export default function CountdownTimer({auctionEnd}: Props) {
-    const [expired, setExpired] = useState(false);
+    const [expired, setExpired] = useState(auctionEnd < new Date().toISOString());
     const { days, hours, minutes, seconds } = useTimer( {
         expiryTimestamp: new Date(auctionEnd),
-        onExpire: () => setExpired(true)
+        onExpire: () => setExpired(true),
     });
     
     return (
