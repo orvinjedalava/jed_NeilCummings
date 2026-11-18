@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
+import CountdownTimer from "@/features/listings/CountdownTimer";
 
 type Props = {
     auction: any;
@@ -19,6 +20,9 @@ export default function AuctionCard({ auction }: Props) {
                     priority
                     sizes='(max-width:768px) 100vw, (max-width: 1200px) 50vw, 33vw'
                 />
+                <div className='absolute bottom-18 left-2'>
+                    <CountdownTimer auctionEnd={auction.auctionEnd} />
+                </div>
                 <CardContent className='flex justify-between items-center'>
                     <h3 className='text-muted-foreground'>
                         {auction.make} {auction.model}
