@@ -2,9 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import CountdownTimer from "@/features/listings/CountdownTimer";
 import CarImage from "@/features/listings/CarImage";
+import {Auction} from "@/lib/types";
 
 type Props = {
-    auction: any;
+    auction: Auction;
 }
 
 export default function AuctionCard({ auction }: Props) {
