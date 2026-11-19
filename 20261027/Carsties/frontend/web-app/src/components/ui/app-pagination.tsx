@@ -10,12 +10,15 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination"
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import {Button} from "@/components/ui/button";
 
 type Props = {
     page: number,
     pageSize: number,
     totalCount: number
 }
+
+const PAGE_SIZE_OPTIONS = [4,8,12];
 
 export function AppPagination( { page, pageSize, totalCount }: Props) {
     
@@ -32,6 +35,18 @@ export function AppPagination( { page, pageSize, totalCount }: Props) {
         const params = new URLSearchParams(searchParams.toString());
         params.set('pageNumber', pageNumber.toString());
         
+        // update the URL after clicking to a page
+        router.push(`${pathname}?${params.toString()}`);
+    }
+    
+    const setPageSize = (newPageSize: number) => {
+        if (newPageSize === pageSize)
+            return;
+
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('pageNumber', '1');
+        params.set('pageSize', newPageSize.toString());
+
         // update the URL after clicking to a page
         router.push(`${pathname}?${params.toString()}`);
     }
@@ -102,6 +117,20 @@ export function AppPagination( { page, pageSize, totalCount }: Props) {
                     />
                 </PaginationItem>
             </PaginationContent>
+            <div className='flex items-center gap-1'>
+                <span className='text=sm text-muted-foreground'>Show:</span>
+                {PAGE_SIZE_OPTIONS.map(size => (
+                    <Button
+                        key={size}
+                        type='button'
+                        size='sm'
+                        variant={size === pageSize ? 'outline' : 'ghost'}
+                        onClick={() => { setPageSize(size) }}
+                    >
+                        {size}
+                    </Button>
+                ))}
+            </div>
         </Pagination>
     )
 }
