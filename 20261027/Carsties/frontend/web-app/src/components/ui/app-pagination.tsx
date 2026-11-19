@@ -31,6 +31,8 @@ export function AppPagination( { page, pageSize, totalCount }: Props) {
         
         const params = new URLSearchParams(searchParams.toString());
         params.set('pageNumber', pageNumber.toString());
+        
+        // update the URL after clicking to a page
         router.push(`${pathname}?${params.toString()}`);
     }
     
