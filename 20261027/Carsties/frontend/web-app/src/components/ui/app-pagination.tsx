@@ -49,8 +49,15 @@ export function AppPagination( { page, pageSize, totalCount }: Props) {
         }
     }
     
+    const firstResult = totalCount === 0 ? 0 : (page -1) * pageSize + 1;
+    const lastResult = Math.min(page * pageSize, totalCount);
+    
     return (
-        <Pagination className='fixed max-w-none inset-x-0 bottom-0 z-50 w-full border-t border-border/70 bg-background/70 py-2 backdrop-blur-2xl'>
+        <Pagination 
+            className='fixed flex items-center justify-between px-10 max-w-none inset-x-0 bottom-0 z-50 w-full border-t border-border/70 bg-background/70 py-2 backdrop-blur-2xl'>
+            <div className='text-sm text-muted-foreground'>
+                {firstResult} - {lastResult} of {totalCount} results
+            </div>
             <PaginationContent>
                 <PaginationItem>
                     <PaginationPrevious 
