@@ -1,5 +1,6 @@
 import {CarFront} from "lucide-react";
 import Link from "next/link";
+import SearchInput from "@/components/nav/SearchInput";
 
 export default function NavBar() {
     return (
@@ -8,7 +9,7 @@ export default function NavBar() {
                 <CarFront size={50} />
                 <div>Carsties Auctions</div>
             </Link>
-            <div>Search</div>
+            <SearchInput />
             <div>Login</div>
         </header>
     );

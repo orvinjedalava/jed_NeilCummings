@@ -8,8 +8,9 @@ export default async function Home(props: PageProps<"/">) {
     
     const page = Number(searchParams["pageNumber"] || 1);
     const pageSize = Number(searchParams["pageSize"] || 8);
+    const searchTerm = searchParams["searchTerm"];
     
-    const data = await getListings(page);
+    const data = await getListings(page, pageSize, searchTerm);
     
     return (
         <div>
