@@ -4,6 +4,7 @@ import {useSearchParams, usePathname, useRouter} from "next/navigation";
 import { InputGroupAddon, InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import {Search} from "lucide-react";
 import {ChangeEvent, useState} from "react";
+import {debounce} from "@/lib/utils";
 
 export default function SearchInput() {
     const router = useRouter();
@@ -24,13 +25,16 @@ export default function SearchInput() {
         router.push(`${dest}?${params.toString()}`);
     }
     
+    const debouncedSearch = debounce(search, 500);
+    
     const onChange = (e: ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value;
         setValue(term);
         if (term === "") {
+            debouncedSearch.cancel();
             search('');
         } else {
-            search(term);
+            debouncedSearch(term);
         }
     }
     

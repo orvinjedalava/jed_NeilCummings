@@ -1,9 +1,16 @@
 import {Auction, PagedResult} from "@/lib/types";
 
-export async function getListings(pageNumber = 1, pageSize = 4, searchTerm?: string | string[]): Promise<PagedResult<Auction>> {
+export type ListingSearchParams = {
+    pageNumber?: string | string[];
+    pageSize?: string | string[];
+    searchTerm?: string | string[];
+}
+
+export async function getListings(params: ListingSearchParams = {}): Promise<PagedResult<Auction>> {
+    const { pageNumber, pageSize, searchTerm } = params;
     const query = new URLSearchParams({
-        pageNumber: pageNumber.toString(),
-        pageSize: pageSize.toString(),
+        pageNumber: pageNumber?.toString() || String(1),
+        pageSize: pageSize?.toString() || String(8),
     });
     
     if (searchTerm)
