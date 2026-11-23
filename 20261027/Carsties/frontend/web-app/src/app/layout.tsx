@@ -15,12 +15,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en" className={cn("font-sans", inter.variable)}>
-      <body className='bg-muted'>
+      <body className='bg-muted min-h-screen flex flex-col'>
       
-      <NavBar />
-      <main className="container mx-auto mt-8">
-        {children}
-      </main>
+          <NavBar />
+          <main className="container mx-auto mt-8 flex flex-1 flex-col">
+            {children}
+          </main>
       
       </body>
     </html>

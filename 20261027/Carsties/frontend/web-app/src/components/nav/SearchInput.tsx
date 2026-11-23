@@ -10,7 +10,15 @@ export default function SearchInput() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const urlSearchTerm = searchParams.get("searchTerm") ?? "";
+    
     const [value, setValue] = useState(() => searchParams.get("searchTerm") ?? "");
+    const [prevSearchTerm, setPrevSearchTerm] = useState(urlSearchTerm);
+    
+    if (urlSearchTerm !== prevSearchTerm) {
+        setPrevSearchTerm(urlSearchTerm);
+        setValue(urlSearchTerm);
+    }
     
     const search = (term: string) => {
         const params = new URLSearchParams(searchParams);
