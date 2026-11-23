@@ -4,10 +4,12 @@ export type ListingSearchParams = {
     pageNumber?: string | string[];
     pageSize?: string | string[];
     searchTerm?: string | string[];
+    orderBy?: string | string[];
+    filterBy?: string | string[];
 }
 
 export async function getListings(params: ListingSearchParams = {}): Promise<PagedResult<Auction>> {
-    const { pageNumber, pageSize, searchTerm } = params;
+    const { pageNumber, pageSize, searchTerm, orderBy, filterBy } = params;
     const query = new URLSearchParams({
         pageNumber: pageNumber?.toString() || String(1),
         pageSize: pageSize?.toString() || String(8),
@@ -15,6 +17,9 @@ export async function getListings(params: ListingSearchParams = {}): Promise<Pag
     
     if (searchTerm)
         query.set("searchTerm", searchTerm.toString());
+    
+    query.set("orderBy", orderBy?.toString() || 'endingSoon');
+    query.set("filterBy", filterBy?.toString() || 'live');
     
     const res = await fetch(
         `http://localhost:6001/search?${query}`);
