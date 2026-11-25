@@ -8,6 +8,8 @@ export type ListingSearchParams = {
     filterBy?: string | string[];
 }
 
+const baseUrl = process.env.BASE_API_URL || 'http://localhost:6001';
+
 export async function getListings(params: ListingSearchParams = {}): Promise<PagedResult<Auction>> {
     const { pageNumber, pageSize, searchTerm, orderBy, filterBy } = params;
     const query = new URLSearchParams({
@@ -21,10 +23,17 @@ export async function getListings(params: ListingSearchParams = {}): Promise<Pag
     query.set("orderBy", orderBy?.toString() || 'endingSoon');
     query.set("filterBy", filterBy?.toString() || 'live');
     
-    const res = await fetch(
-        `http://localhost:6001/search?${query}`);
+    const res = await fetch(`${baseUrl}/search?${query}`);
 
     if (!res.ok) throw new Error('Failed to fetch data');
 
     return res.json(); // returns the body of the response
+}
+
+export async function getListingDetails(id: string): Promise<Auction> {
+    const res = await fetch(`${baseUrl}/auctions/${id}`);
+    
+    if (!res.ok) throw new Error('Failed to fetch data');
+    
+    return res.json();
 }
