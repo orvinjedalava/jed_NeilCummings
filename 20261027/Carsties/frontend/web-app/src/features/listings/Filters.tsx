@@ -40,7 +40,7 @@ export default function Filters() {
     }
     
     return (
-        <div className='flex justify-between items-center mb-4 -mt-4 p-4 border-b border-muted-foreground'>
+        <div className='flex justify-between items-center mb-4 -mt-4 p-3 border-b border-muted-foreground'>
             <div className='text-2xl font-semibold'>
                 All listings
             </div>
